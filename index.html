@@ -1,0 +1,210 @@
+import pygame
+import random
+import sys
+
+# 1. Inisialisasi Pygame & Sound Engine
+pygame.init()
+pygame.mixer.init()
+
+# Konfigurasi Layar
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("2D Animated Battle Game - GitHub Edition")
+clock = pygame.time.Clock()
+
+# Warna (RGB)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (230, 50, 50)
+BLUE = (50, 120, 230)
+YELLOW = (240, 200, 40)
+DARK_BLUE = (20, 20, 50)
+
+# Font
+font_small = pygame.font.SysFont("Arial", 24)
+font_large = pygame.font.SysFont("Arial", 48)
+
+# --- MEMBUAT EFEK SUARA BUATAN (SFX) ---
+def create_beep_sound(frequency=440, duration=100):
+    """Membuat efek suara sederhana secara programatis."""
+    import numpy as np
+    sample_rate = 44100
+    n_samples = int(sample_rate * (duration / 1000.0))
+    buf = np.sin(2 * np.pi * np.arange(n_samples) * frequency / sample_rate)
+    buf = (buf * 32767).astype(np.int16)
+    buf2 = np.empty((n_samples, 2), dtype=np.int16)
+    buf2[:, 0] = buf
+    buf2[:, 1] = buf
+    sound = pygame.sndarray.make_sound(buf2)
+    return sound
+
+try:
+    sound_score = create_beep_sound(880, 150)
+    sound_level = create_beep_sound(523, 300)
+except Exception:
+    sound_score = None
+    sound_level = None
+
+# --- KLAS/OBJECT GAME ---
+class Player:
+    def __init__(self, x, y, color, controls):
+        self.rect = pygame.Rect(x, y, 40, 40)
+        self.color = color
+        self.controls = controls # [UP, DOWN, LEFT, RIGHT]
+        self.score = 0
+        self.speed = 5
+
+    def move(self, keys):
+        if self.controls:
+            if keys[self.controls[0]] and self.rect.top > 0:
+                self.rect.y -= self.speed
+            if keys[self.controls[1]] and self.rect.bottom < HEIGHT:
+                self.rect.y += self.speed
+            if keys[self.controls[2]] and self.rect.left > 0:
+                self.rect.x -= self.speed
+            if keys[self.controls[3]] and self.rect.right < WIDTH:
+                self.rect.x += self.speed
+
+class EnemyAI:
+    def __init__(self, x, y, color):
+        self.rect = pygame.Rect(x, y, 40, 40)
+        self.color = color
+        self.score = 0
+        self.speed = 3
+
+    def auto_move(self, target_rect):
+        # Pergerakan sederhana mendekati target (Item)
+        if self.rect.x < target_rect.x:
+            self.rect.x += self.speed
+        elif self.rect.x > target_rect.x:
+            self.rect.x -= self.speed
+            
+        if self.rect.y < target_rect.y:
+            self.rect.y += self.speed
+        elif self.rect.y > target_rect.y:
+            self.rect.y -= self.speed
+
+# --- LATAR BELAKANG ANIMASI ---
+class AnimatedBackground:
+    def __init__(self):
+        self.stars = [[random.randint(0, WIDTH), random.randint(0, HEIGHT), random.randint(1, 3)] for _ in range(50)]
+
+    def update_and_draw(self, surface):
+        surface.fill(DARK_BLUE)
+        for star in self.stars:
+            star[1] += star[2] # Gerakan jatuh ke bawah
+            if star[1] > HEIGHT:
+                star[1] = 0
+                star[0] = random.randint(0, WIDTH)
+            pygame.draw.circle(surface, WHITE, (star[0], star[1]), star[2])
+
+# --- MAIN GAME LOOP ---
+def main():
+    bg = AnimatedBackground()
+    
+    # Pilih Mode: 1 = vs Computer, 2 = 2 Players
+    two_player_mode = False 
+
+    player1 = Player(100, 300, BLUE, [pygame.K_w, pygame.K_s, pygame.K_a, pygame.K_d])
+    
+    if two_player_mode:
+        player2 = Player(650, 300, RED, [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT])
+    else:
+        player2 = EnemyAI(650, 300, RED)
+
+    # Item Target
+    target = pygame.Rect(random.randint(50, WIDTH-50), random.randint(50, HEIGHT-50), 20, 20)
+
+    # Variabel Waktu & Level
+    start_ticks = pygame.time.get_ticks()
+    game_duration = 30 # detik
+    level = 1
+
+    running = True
+    while running:
+        clock.tick(60) # 60 FPS
+        
+        # Hitung Sisa Waktu
+        seconds_passed = (pygame.time.get_ticks() - start_ticks) // 1000
+        time_left = max(0, game_duration - seconds_passed)
+
+        # Event Handling
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                # Tekan TAB untuk ganti mode (1 Player / 2 Player)
+                if event.key == pygame.K_TAB:
+                    two_player_mode = not two_player_mode
+                    if two_player_mode:
+                        player2 = Player(650, 300, RED, [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT])
+                    else:
+                        player2 = EnemyAI(650, 300, RED)
+
+        # Movement
+        keys = pygame.key.get_pressed()
+        player1.move(keys)
+        
+        if two_player_mode:
+            player2.move(keys)
+        else:
+            player2.auto_move(target)
+
+        # Deteksi Tabrakan dengan Item
+        if player1.rect.colliderect(target):
+            player1.score += 10
+            if sound_score: sound_score.play()
+            target.x = random.randint(50, WIDTH-50)
+            target.y = random.randint(50, HEIGHT-50)
+
+        if player2.rect.colliderect(target):
+            player2.score += 10
+            if sound_score: sound_score.play()
+            target.x = random.randint(50, WIDTH-50)
+            target.y = random.randint(50, HEIGHT-50)
+
+        # Sistem Level Up berdasarkan total poin
+        new_level = (player1.score + player2.score) // 50 + 1
+        if new_level > level:
+            level = new_level
+            if sound_level: sound_level.play()
+            if not two_player_mode:
+                player2.speed += 1 # Musuh komputer makin cepat saat level naik
+
+        # RENDER / GAMBAR DI LAYAR
+        bg.update_and_draw(screen)
+
+        # Gambar Karakter & Item
+        pygame.draw.rect(screen, player1.color, player1.rect)
+        pygame.draw.rect(screen, player2.color, player2.rect)
+        pygame.draw.ellipse(screen, YELLOW, target)
+
+        # UI / Text Info
+        txt_p1 = font_small.render(f"P1 Score: {player1.score}", True, WHITE)
+        mode_str = "P2 Score" if two_player_mode else "CPU Score"
+        txt_p2 = font_small.render(f"{mode_str}: {player2.score}", True, WHITE)
+        txt_time = font_small.render(f"Time: {time_left}s", True, WHITE)
+        txt_level = font_small.render(f"Level: {level}", True, YELLOW)
+        txt_info = font_small.render("[TAB] Switch Mode (1P/2P)", True, WHITE)
+
+        screen.blit(txt_p1, (20, 20))
+        screen.blit(txt_p2, (20, 50))
+        screen.blit(txt_time, (WIDTH // 2 - 40, 20))
+        screen.blit(txt_level, (WIDTH // 2 - 40, 50))
+        screen.blit(txt_info, (WIDTH - 250, 20))
+
+        # Game Over Condition
+        if time_left == 0:
+            txt_over = font_large.render("GAME OVER!", True, RED)
+            screen.blit(txt_over, (WIDTH // 2 - 130, HEIGHT // 2 - 30))
+            pygame.display.flip()
+            pygame.time.wait(3000)
+            running = False
+
+        pygame.display.flip()
+
+    pygame.quit()
+    sys.exit()
+
+if __name__ == "__main__":
+    main()
