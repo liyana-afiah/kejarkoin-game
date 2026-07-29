@@ -158,15 +158,15 @@
         /* Styling Logo Container di Game Over */
         .logo-container {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             align-items: center;
             justify-content: center;
-            margin-top: 25px;
+            margin-top: 20px;
             margin-bottom: 25px;
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.03);
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
-            border: 1px solid rgba(0, 240, 255, 0.2);
+            border: 1px solid rgba(0, 240, 255, 0.3);
         }
 
         .logo-container img {
@@ -174,6 +174,7 @@
             height: 65px;
             object-fit: cover;
             border-radius: 8px;
+            background-color: #1a1a2e;
             border: 1px solid rgba(0, 240, 255, 0.5);
             box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
             transition: transform 0.3s ease;
@@ -224,12 +225,12 @@
             <h1 style="color: #ff0055; text-shadow: 0 0 15px #ff0055;">GAME OVER</h1>
             <p id="final-stats" class="subtitle" style="font-size: 18px; color: #fff; margin-bottom: 10px;"></p>
             
-            <!-- Logo-logo Pengembang / Sekolah -->
+            <!-- Logo-logo Pengembang / Sekolah dengan fallback otomatis -->
             <div class="logo-container">
-                <img src="bpkmoko.jpeg" alt="Logo MOKO">
-                <img src="rpl.jpeg" alt="Logo RPL">
-                <img src="sanden.jpeg" alt="Logo SMKN 1 Sanden">
-                <img src="smk1.jpeg" alt="Logo One Sanden">
+                <img src="bpkmoko.jpeg" alt="Logo MOKO" onerror="this.onerror=null; this.src='https://placehold.co/65x65/00f0ff/000000?text=MOKO';">
+                <img src="rpl.jpeg" alt="Logo RPL" onerror="this.onerror=null; this.src='https://placehold.co/65x65/7000ff/ffffff?text=RPL';">
+                <img src="sanden.jpeg" alt="Logo SMKN 1 Sanden" onerror="this.onerror=null; this.src='https://placehold.co/65x65/ff0055/ffffff?text=SMKN1';">
+                <img src="smk1.jpeg" alt="Logo One Sanden" onerror="this.onerror=null; this.src='https://placehold.co/65x65/00ff66/000000?text=ONE';">
             </div>
 
             <button onclick="showMenu()">MAIN LAGI</button>
@@ -268,8 +269,8 @@
         function soundLevelUp() { playSound(523, 'sine', 0.3, 0.2); }
 
         // --- GAME STATES & VARIABLES ---
-        let mode = 1; // 1 or 2 players
-        let gameState = 'MENU'; // MENU, COUNTDOWN, PLAYING, GAMEOVER
+        let mode = 1;
+        let gameState = 'MENU';
         let gameTime = 0;
         let level = 1;
         let score = 0;
@@ -339,13 +340,11 @@
             draw() {
                 if (!this.active) return;
 
-                // Thruster particle effect
                 ctx.fillStyle = Math.random() > 0.5 ? '#ffaa00' : '#ff0055';
                 ctx.beginPath();
                 ctx.arc(this.x, this.y + this.size + 4, 4 + Math.random() * 3, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Ship body
                 ctx.fillStyle = this.color;
                 ctx.beginPath();
                 ctx.moveTo(this.x, this.y - this.size);
@@ -355,7 +354,6 @@
                 ctx.closePath();
                 ctx.fill();
 
-                // Shield visual
                 if (this.shieldTimer > 0) {
                     ctx.strokeStyle = '#00ffff';
                     ctx.lineWidth = 3;
@@ -538,7 +536,6 @@
             document.getElementById('menu-overlay').classList.add('hidden');
             document.getElementById('gameover-overlay').classList.add('hidden');
 
-            // Init Players
             players = [];
             players.push(new Player(1, 300, 430, '#00f0ff', { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', shoot: 'Space' }));
             
@@ -556,7 +553,6 @@
 
             updateHpBars();
 
-            // Countdown timer
             let count = 3;
             const cdEl = document.getElementById('countdown-text');
             cdEl.innerText = count;
@@ -577,12 +573,10 @@
         function startGameplay() {
             gameState = 'PLAYING';
 
-            // Timer Loop
             timerInterval = setInterval(() => {
                 gameTime++;
                 document.getElementById('hud-time').innerText = gameTime;
 
-                // Naik Level setiap 20 detik
                 if (gameTime % 20 === 0) {
                     level++;
                     document.getElementById('hud-level').innerText = level;
@@ -590,7 +584,6 @@
                 }
             }, 1000);
 
-            // Enemy Spawn Loop
             enemySpawnInterval = setInterval(() => {
                 if (gameState === 'PLAYING') {
                     enemies.push(new Enemy());
@@ -623,15 +616,12 @@
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. Draw Starfield Parallax
-            ctx.fillStyle = '#ffffff';
             stars.forEach(star => {
                 star.y += star.speed;
                 if (star.y > canvas.height) star.y = 0;
                 ctx.fillRect(star.x, star.y, star.size, star.size);
             });
 
-            // 2. Render Particles
             particles.forEach((p, idx) => {
                 p.update();
                 p.draw();
@@ -639,25 +629,21 @@
             });
 
             if (gameState === 'PLAYING' || gameState === 'COUNTDOWN') {
-                // Update & Draw Players
                 players.forEach(p => {
                     if (gameState === 'PLAYING') p.update();
                     p.draw();
                 });
 
-                // Update & Draw Bullets
                 bullets.forEach((b, bIdx) => {
                     b.update();
                     b.draw();
                     if (b.y < -10 || b.x < 0 || b.x > canvas.width) bullets.splice(bIdx, 1);
                 });
 
-                // Update & Draw Powerups
                 powerups.forEach((pw, pwIdx) => {
                     pw.update();
                     pw.draw();
 
-                    // Collision with player
                     players.forEach(p => {
                         if (p.active && Math.hypot(pw.x - p.x, pw.y - p.y) < pw.size + p.size) {
                             soundPowerup();
@@ -665,7 +651,7 @@
                                 p.hp = Math.min(p.maxHp, p.hp + 30);
                                 updateHpBars();
                             } else if (pw.type === 'triple') {
-                                p.tripleShotTimer = 300; // ~5 sec
+                                p.tripleShotTimer = 300;
                             } else if (pw.type === 'shield') {
                                 p.shieldTimer = 300;
                             }
@@ -676,12 +662,10 @@
                     if (pw.y > canvas.height + 20) powerups.splice(pwIdx, 1);
                 });
 
-                // Update & Draw Enemies
                 enemies.forEach((e, eIdx) => {
                     e.update();
                     e.draw();
 
-                    // Bullet vs Enemy Collision
                     bullets.forEach((b, bIdx) => {
                         if (Math.hypot(b.x - e.x, b.y - e.y) < e.size + b.radius) {
                             e.hp--;
@@ -695,7 +679,6 @@
                                 score += e.type === 'tank' ? 30 : (e.type === 'fast' ? 15 : 10);
                                 document.getElementById('hud-score').innerText = score;
 
-                                // Drop Powerup Chance
                                 if (Math.random() < 0.2) {
                                     powerups.push(new PowerUp(e.x, e.y));
                                 }
@@ -705,7 +688,6 @@
                         }
                     });
 
-                    // Enemy vs Player Collision / Bottom Screen
                     players.forEach(p => {
                         if (p.active && Math.hypot(e.x - p.x, e.y - p.y) < e.size + p.size) {
                             p.takeDamage(25);
@@ -715,13 +697,11 @@
                     });
 
                     if (e.y > canvas.height + e.size) {
-                        // Musuh lolos ke bawah memotong HP semua pemain
                         players.forEach(p => { if (p.active) p.takeDamage(15); });
                         enemies.splice(eIdx, 1);
                     }
                 });
 
-                // Check Game Over Condition
                 const activePlayers = players.filter(p => p.active);
                 if (activePlayers.length === 0 && gameState === 'PLAYING') {
                     gameOver();
@@ -731,7 +711,6 @@
             requestAnimationFrame(animate);
         }
 
-        // Start Loop
         animate();
     </script>
 </body>
