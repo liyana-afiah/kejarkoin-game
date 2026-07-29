@@ -1,6 +1,7 @@
 import pygame
 import random
 import sys
+import numpy as np  # Dipindahkan ke atas
 
 # 1. Inisialisasi Pygame & Sound Engine
 pygame.init()
@@ -27,7 +28,6 @@ font_large = pygame.font.SysFont("Arial", 48)
 # --- MEMBUAT EFEK SUARA BUATAN (SFX) ---
 def create_beep_sound(frequency=440, duration=100):
     """Membuat efek suara sederhana secara programatis."""
-    import numpy as np
     sample_rate = 44100
     n_samples = int(sample_rate * (duration / 1000.0))
     buf = np.sin(2 * np.pi * np.arange(n_samples) * frequency / sample_rate)
@@ -136,10 +136,20 @@ def main():
                 # Tekan TAB untuk ganti mode (1 Player / 2 Player)
                 if event.key == pygame.K_TAB:
                     two_player_mode = not two_player_mode
+                    
+                    # Simpan koordinat, skor, dan kecepatan sebelum ganti mode
+                    old_x, old_y = player2.rect.x, player2.rect.y
+                    old_score = player2.score
+                    old_speed = player2.speed
+                    
                     if two_player_mode:
-                        player2 = Player(650, 300, RED, [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT])
+                        player2 = Player(old_x, old_y, RED, [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT])
                     else:
-                        player2 = EnemyAI(650, 300, RED)
+                        player2 = EnemyAI(old_x, old_y, RED)
+                    
+                    # Kembalikan skor & kecepatan agar tidak teriset
+                    player2.score = old_score
+                    player2.speed = old_speed
 
         # Movement
         keys = pygame.key.get_pressed()
@@ -200,6 +210,7 @@ def main():
             pygame.display.flip()
             pygame.time.wait(3000)
             running = False
+            continue
 
         pygame.display.flip()
 
