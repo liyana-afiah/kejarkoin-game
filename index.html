@@ -3,699 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber Space Defender - GitHub Arcade Game</title>
+    <title>Cyber Space Defender</title>
     <style>
         * {
-            box-sizing: border-box;
-            user-select: none;
-        }
-        body {
             margin: 0;
             padding: 0;
-            background-color: #080814;
-            color: #ffffff;
+            box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        }
+
+        body {
+            background-color: #050814;
+            color: #ffffff;
             min-height: 100vh;
-            overflow: hidden;
-        }
-
-        #game-wrapper {
-            position: relative;
-            box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 2px solid rgba(0, 240, 255, 0.4);
-        }
-
-        canvas {
-            background: #030308;
-            display: block;
-        }
-
-        /* Overlay & UI Styling */
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(5, 5, 15, 0.88);
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            z-index: 10;
-            backdrop-filter: blur(4px);
+            overflow-x: hidden;
+            position: relative;
         }
 
-        .hidden {
-            display: none !important;
-        }
-
-        h1 {
-            font-size: 42px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            color: #00f0ff;
-            text-shadow: 0 0 15px #00f0ff;
-        }
-
-        p.subtitle {
-            color: #aaa;
-            margin-bottom: 30px;
-            font-size: 16px;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 20px;
-        }
-
-        button {
-            padding: 14px 28px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #fff;
-            background: linear-gradient(135deg, #00f0ff, #7000ff);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
-        }
-
-        button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 25px rgba(0, 240, 255, 0.8);
-        }
-
-        .hud {
+        /* Latar belakang tema grid cyber */
+        body::before {
+            content: '';
             position: absolute;
-            top: 12px;
-            left: 15px;
-            right: 15px;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.08) 0%, transparent 70%),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Header Logo (4 Logo) */
+        .header-logos {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 16px;
-            font-weight: bold;
-            pointer-events: none;
-            z-index: 5;
-            text-shadow: 1px 1px 3px #000;
+            background: linear-gradient(180deg, rgba(5, 8, 20, 0.9) 0%, rgba(5, 8, 20, 0) 100%);
         }
 
-        .hud-item {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 6px 14px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
         }
 
-        .health-bar-container {
-            width: 120px;
-            height: 12px;
-            background: #222;
-            border-radius: 6px;
-            overflow: hidden;
-            display: inline-block;
-            vertical-align: middle;
-            margin-left: 6px;
-            border: 1px solid #444;
+        .logo-item {
+            width: 65px;
+            height: 65px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.3));
+            transition: transform 0.3s ease, filter 0.3s ease;
+            border-radius: 8px;
         }
 
-        .health-bar-fill {
-            height: 100%;
-            width: 100%;
-            background: linear-gradient(90deg, #00f0ff, #00ff66);
-            transition: width 0.2s ease;
+        .logo-item:hover {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.8));
         }
 
-        #countdown-text {
-            font-size: 80px;
+        /* Container Utama Game */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            max-width: 900px;
+            padding: 20px;
+            margin: auto;
+        }
+
+        .game-title {
+            font-size: 3.5rem;
             font-weight: 900;
+            letter-spacing: 3px;
             color: #00f0ff;
-            text-shadow: 0 0 30px #00f0ff;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 9;
-            pointer-events: none;
+            text-shadow: 
+                0 0 10px #00f0ff,
+                0 0 20px #00f0ff,
+                0 0 40px rgba(0, 240, 255, 0.6);
+            margin-bottom: 15px;
+            text-transform: uppercase;
         }
 
-        #controls-info {
-            margin-top: 15px;
-            font-size: 13px;
-            color: #888;
+        .game-subtitle {
+            font-size: 1.2rem;
+            color: #d1d5db;
+            margin-bottom: 40px;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+
+        /* Tombol Game */
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 35px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #00d2ff 0%, #a200ff 100%);
+            border: none;
+            color: #ffffff;
+            padding: 16px 36px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 220px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 0 30px rgba(162, 0, 255, 0.8);
+        }
+
+        /* Informasi Kontrol */
+        .controls-info {
+            font-size: 0.95rem;
+            color: #9ca3af;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 12px 24px;
+            border-radius: 30px;
+            display: inline-block;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .footer {
+            position: relative;
+            z-index: 10;
+            padding: 20px;
+            font-size: 0.85rem;
+            color: #6b7280;
             text-align: center;
         }
     </style>
 </head>
 <body>
 
-    <div id="game-wrapper">
-        <!-- HUD Atas -->
-        <div class="hud">
-            <div class="hud-item">
-                <span>P1 HP:</span>
-                <div class="health-bar-container"><div id="p1-hp" class="health-bar-fill"></div></div>
-            </div>
-            <div id="p2-hud" class="hud-item hidden">
-                <span>P2 HP:</span>
-                <div class="health-bar-container"><div id="p2-hp" class="health-bar-fill" style="background: linear-gradient(90deg, #ff00ff, #00ff66);"></div></div>
-            </div>
-            <div class="hud-item">⏱️ <span id="hud-time">0</span>s</div>
-            <div class="hud-item">⭐ Lvl: <span id="hud-level">1</span></div>
-            <div class="hud-item">💥 Skor: <span id="hud-score">0</span></div>
+    <header class="header-logos">
+        <div class="logo-group">
+            <img src="[BASE64_ONESANDVOSCHO]" alt="ONESANDVOSCHO" class="logo-item">
+            <img src="[BASE64_SMKN1SANDEN]" alt="SMKN 1 Sanden" class="logo-item">
+        </div>
+        <div class="logo-group">
+            <img src="[BASE64_RPL]" alt="RPL" class="logo-item">
+            <img src="[BASE64_MOKO]" alt="MOKO Game Dev" class="logo-item">
+        </div>
+    </header>
+
+    <main class="main-container">
+        <h1 class="game-title">CYBER SPACE DEFENDER</h1>
+        <p class="game-subtitle">Bertahan hidup dari gelombang musuh luar angkasa!</p>
+
+        <div class="button-group">
+            <button class="btn" onclick="startGame(1)">1 PLAYER</button>
+            <button class="btn" onclick="startGame(2)">2 PLAYER (CO-OP)</button>
         </div>
 
-        <!-- Teks Hitung Mundur -->
-        <div id="countdown-text" class="hidden">3</div>
-
-        <!-- Menu Utama -->
-        <div id="menu-overlay" class="overlay">
-            <h1>CYBER SPACE DEFENDER</h1>
-            <p class="subtitle">Bertahan hidup dari gelombang musuh luar angkasa!</p>
-            <div class="btn-group">
-                <button onclick="startGame(1)">1 PLAYER</button>
-                <button onclick="startGame(2)">2 PLAYER (CO-OP)</button>
-            </div>
-            <div id="controls-info">
-                <b>P1:</b> Panah [↑↓←→] & [Spasi] Tembak &nbsp;|&nbsp; 
-                <b>P2:</b> [WASD] & [F] Tembak
-            </div>
+        <div class="controls-info">
+            <b>P1:</b> Panah [↑↓←→] & [Spasi] Tembak &nbsp;|&nbsp; <b>P2:</b> [WASD] & [F] Tembak
         </div>
+    </main>
 
-        <!-- Game Over Screen -->
-        <div id="gameover-overlay" class="overlay hidden">
-            <h1 style="color: #ff0055; text-shadow: 0 0 15px #ff0055;">GAME OVER</h1>
-            <p id="final-stats" class="subtitle" style="font-size: 18px; color: #fff;"></p>
-            <button onclick="showMenu()">MAIN LAGI</button>
-        </div>
-
-        <canvas id="canvas" width="850" height="520"></canvas>
-    </div>
+    <footer class="footer">
+        &copy; SMKN 1 Sanden - Rekayasa Perangkat Lunak (RPL) & MOKO Game Development Projects
+    </footer>
 
     <script>
-        const canvas = document.getElementById("canvas");
-        const ctx = canvas.getContext("2d");
-
-        // --- WEB AUDIO API (SYNTHESIZER SOUNDS) ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        function playSound(freq, type = 'sine', duration = 0.1, vol = 0.1) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + duration);
-            } catch(e) {}
+        function startGame(players) {
+            alert("Memulai permainan mode " + players + " Player!");
         }
-
-        function soundLaser() { playSound(700, 'square', 0.08, 0.08); }
-        function soundExplode() { playSound(120, 'sawtooth', 0.2, 0.2); }
-        function soundHit() { playSound(300, 'triangle', 0.05, 0.15); }
-        function soundPowerup() { playSound(900, 'sine', 0.25, 0.15); }
-        function soundLevelUp() { playSound(523, 'sine', 0.3, 0.2); }
-
-        // --- GAME STATES & VARIABLES ---
-        let mode = 1; // 1 or 2 players
-        let gameState = 'MENU'; // MENU, COUNTDOWN, PLAYING, GAMEOVER
-        let gameTime = 0;
-        let level = 1;
-        let score = 0;
-        let timerInterval = null;
-        let enemySpawnInterval = null;
-
-        // Key listeners
-        const keys = {};
-        window.addEventListener('keydown', e => { keys[e.code] = true; });
-        window.addEventListener('keyup', e => { keys[e.code] = false; });
-
-        // --- BACKGROUND STARFIELD ---
-        const stars = Array.from({ length: 80 }, () => ({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            size: Math.random() * 2 + 0.5,
-            speed: Math.random() * 1.5 + 0.2
-        }));
-
-        // --- PLAYER CLASS ---
-        class Player {
-            constructor(id, x, y, color, controls) {
-                this.id = id;
-                this.x = x;
-                this.y = y;
-                this.size = 18;
-                this.color = color;
-                this.speed = 4.5;
-                this.hp = 100;
-                this.maxHp = 100;
-                this.controls = controls;
-                this.lastShoot = 0;
-                this.tripleShotTimer = 0;
-                this.shieldTimer = 0;
-                this.active = true;
-            }
-
-            update() {
-                if (!this.active) return;
-
-                if (keys[this.controls.up] && this.y > this.size + 40) this.y -= this.speed;
-                if (keys[this.controls.down] && this.y < canvas.height - this.size - 10) this.y += this.speed;
-                if (keys[this.controls.left] && this.x > this.size) this.x -= this.speed;
-                if (keys[this.controls.right] && this.x < canvas.width - this.size) this.x += this.speed;
-
-                if (this.tripleShotTimer > 0) this.tripleShotTimer--;
-                if (this.shieldTimer > 0) this.shieldTimer--;
-
-                // Shoot
-                if (keys[this.controls.shoot] && Date.now() - this.lastShoot > 200) {
-                    this.shoot();
-                    this.lastShoot = Date.now();
-                }
-            }
-
-            shoot() {
-                soundLaser();
-                if (this.tripleShotTimer > 0) {
-                    bullets.push(new Bullet(this.x - 10, this.y - 15, -0.2, this.color));
-                    bullets.push(new Bullet(this.x, this.y - 20, 0, this.color));
-                    bullets.push(new Bullet(this.x + 10, this.y - 15, 0.2, this.color));
-                } else {
-                    bullets.push(new Bullet(this.x, this.y - 20, 0, this.color));
-                }
-            }
-
-            draw() {
-                if (!this.active) return;
-
-                // Thruster particle effect
-                ctx.fillStyle = Math.random() > 0.5 ? '#ffaa00' : '#ff0055';
-                ctx.beginPath();
-                ctx.arc(this.x, this.y + this.size + 4, 4 + Math.random() * 3, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Ship body
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.moveTo(this.x, this.y - this.size);
-                ctx.lineTo(this.x - this.size, this.y + this.size);
-                ctx.lineTo(this.x, this.y + this.size * 0.6);
-                ctx.lineTo(this.x + this.size, this.y + this.size);
-                ctx.closePath();
-                ctx.fill();
-
-                // Shield visual
-                if (this.shieldTimer > 0) {
-                    ctx.strokeStyle = '#00ffff';
-                    ctx.lineWidth = 3;
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size + 8, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
-            }
-
-            takeDamage(amount) {
-                if (this.shieldTimer > 0) return;
-                this.hp -= amount;
-                soundHit();
-                createExplosion(this.x, this.y, '#ff4400', 10);
-                if (this.hp <= 0) {
-                    this.hp = 0;
-                    this.active = false;
-                    createExplosion(this.x, this.y, this.color, 30);
-                }
-                updateHpBars();
-            }
-        }
-
-        // --- BULLET CLASS ---
-        class Bullet {
-            constructor(x, y, vx, color) {
-                this.x = x;
-                this.y = y;
-                this.vx = vx * 6;
-                this.vy = -8;
-                this.radius = 3.5;
-                this.color = color;
-            }
-
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-            }
-
-            draw() {
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        // --- ENEMY CLASS ---
-        class Enemy {
-            constructor() {
-                this.x = Math.random() * (canvas.width - 60) + 30;
-                this.y = -30;
-                this.type = Math.random() < 0.2 ? 'tank' : (Math.random() < 0.35 ? 'fast' : 'basic');
-
-                if (this.type === 'tank') {
-                    this.size = 24;
-                    this.hp = 5 + Math.floor(level / 2);
-                    this.speed = 1 + level * 0.1;
-                    this.color = '#aa00ff';
-                } else if (this.type === 'fast') {
-                    this.size = 14;
-                    this.hp = 1;
-                    this.speed = 3 + level * 0.3;
-                    this.color = '#ffcc00';
-                } else {
-                    this.size = 18;
-                    this.hp = 2;
-                    this.speed = 1.8 + level * 0.2;
-                    this.color = '#ff0055';
-                }
-            }
-
-            update() {
-                this.y += this.speed;
-            }
-
-            draw() {
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                if (this.type === 'tank') {
-                    ctx.rect(this.x - this.size, this.y - this.size, this.size * 2, this.size * 2);
-                } else if (this.type === 'fast') {
-                    ctx.moveTo(this.x, this.y + this.size);
-                    ctx.lineTo(this.x - this.size, this.y - this.size);
-                    ctx.lineTo(this.x + this.size, this.y - this.size);
-                } else {
-                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                }
-                ctx.fill();
-            }
-        }
-
-        // --- POWERUP CLASS ---
-        class PowerUp {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.size = 12;
-                this.type = Math.random() < 0.4 ? 'hp' : (Math.random() < 0.7 ? 'triple' : 'shield');
-                this.speed = 1.5;
-            }
-
-            update() { this.y += this.speed; }
-
-            draw() {
-                ctx.fillStyle = this.type === 'hp' ? '#00ff66' : (this.type === 'triple' ? '#ff00ff' : '#00ffff');
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = '#000';
-                ctx.font = 'bold 10px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                const label = this.type === 'hp' ? '+' : (this.type === 'triple' ? '3' : 'S');
-                ctx.fillText(label, this.x, this.y);
-            }
-        }
-
-        // --- PARTICLE EXPLOSION ---
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.color = color;
-                this.vx = (Math.random() - 0.5) * 6;
-                this.vy = (Math.random() - 0.5) * 6;
-                this.life = 1.0;
-                this.decay = Math.random() * 0.03 + 0.02;
-            }
-
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.life -= this.decay;
-            }
-
-            draw() {
-                ctx.globalAlpha = Math.max(0, this.life);
-                ctx.fillStyle = this.color;
-                ctx.fillRect(this.x, this.y, 3, 3);
-                ctx.globalAlpha = 1.0;
-            }
-        }
-
-        // Arrays
-        let players = [];
-        let bullets = [];
-        let enemies = [];
-        let powerups = [];
-        let particles = [];
-
-        function createExplosion(x, y, color, count = 15) {
-            for (let i = 0; i < count; i++) {
-                particles.push(new Particle(x, y, color));
-            }
-        }
-
-        // --- GAME CONTROLS & STATE FUNCTIONS ---
-        function showMenu() {
-            gameState = 'MENU';
-            clearInterval(timerInterval);
-            clearInterval(enemySpawnInterval);
-            document.getElementById('menu-overlay').classList.remove('hidden');
-            document.getElementById('gameover-overlay').classList.add('hidden');
-            document.getElementById('countdown-text').classList.add('hidden');
-        }
-
-        function startGame(selectedMode) {
-            mode = selectedMode;
-            gameState = 'COUNTDOWN';
-            gameTime = 0;
-            level = 1;
-            score = 0;
-
-            document.getElementById('hud-time').innerText = 0;
-            document.getElementById('hud-level').innerText = 1;
-            document.getElementById('hud-score').innerText = 0;
-
-            document.getElementById('menu-overlay').classList.add('hidden');
-            document.getElementById('gameover-overlay').classList.add('hidden');
-
-            // Init Players
-            players = [];
-            players.push(new Player(1, 300, 430, '#00f0ff', { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', shoot: 'Space' }));
-            
-            if (mode === 2) {
-                players.push(new Player(2, 550, 430, '#ff00ff', { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD', shoot: 'KeyF' }));
-                document.getElementById('p2-hud').classList.remove('hidden');
-            } else {
-                document.getElementById('p2-hud').classList.add('hidden');
-            }
-
-            bullets = [];
-            enemies = [];
-            powerups = [];
-            particles = [];
-
-            updateHpBars();
-
-            // Countdown timer
-            let count = 3;
-            const cdEl = document.getElementById('countdown-text');
-            cdEl.innerText = count;
-            cdEl.classList.remove('hidden');
-
-            const cdInterval = setInterval(() => {
-                count--;
-                if (count > 0) {
-                    cdEl.innerText = count;
-                } else {
-                    clearInterval(cdInterval);
-                    cdEl.classList.add('hidden');
-                    startGameplay();
-                }
-            }, 1000);
-        }
-
-        function startGameplay() {
-            gameState = 'PLAYING';
-
-            // Timer Loop
-            timerInterval = setInterval(() => {
-                gameTime++;
-                document.getElementById('hud-time').innerText = gameTime;
-
-                // Naik Level setiap 20 detik
-                if (gameTime % 20 === 0) {
-                    level++;
-                    document.getElementById('hud-level').innerText = level;
-                    soundLevelUp();
-                }
-            }, 1000);
-
-            // Enemy Spawn Loop
-            enemySpawnInterval = setInterval(() => {
-                if (gameState === 'PLAYING') {
-                    enemies.push(new Enemy());
-                }
-            }, Math.max(400, 1200 - level * 80));
-        }
-
-        function updateHpBars() {
-            if (players[0]) {
-                const pct = (players[0].hp / players[0].maxHp) * 100;
-                document.getElementById('p1-hp').style.width = pct + '%';
-            }
-            if (players[1]) {
-                const pct = (players[1].hp / players[1].maxHp) * 100;
-                document.getElementById('p2-hp').style.width = pct + '%';
-            }
-        }
-
-        function gameOver() {
-            gameState = 'GAMEOVER';
-            clearInterval(timerInterval);
-            clearInterval(enemySpawnInterval);
-            soundExplode();
-
-            document.getElementById('final-stats').innerText = `Total Skor: ${score} | Waktu Bertahan: ${gameTime} Detik | Level: ${level}`;
-            document.getElementById('gameover-overlay').classList.remove('hidden');
-        }
-
-        // --- MAIN ANIMATION LOOP ---
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // 1. Draw Starfield Parallax
-            ctx.fillStyle = '#ffffff';
-            stars.forEach(star => {
-                star.y += star.speed;
-                if (star.y > canvas.height) star.y = 0;
-                ctx.fillRect(star.x, star.y, star.size, star.size);
-            });
-
-            // 2. Render Particles
-            particles.forEach((p, idx) => {
-                p.update();
-                p.draw();
-                if (p.life <= 0) particles.splice(idx, 1);
-            });
-
-            if (gameState === 'PLAYING' || gameState === 'COUNTDOWN') {
-                // Update & Draw Players
-                players.forEach(p => {
-                    if (gameState === 'PLAYING') p.update();
-                    p.draw();
-                });
-
-                // Update & Draw Bullets
-                bullets.forEach((b, bIdx) => {
-                    b.update();
-                    b.draw();
-                    if (b.y < -10 || b.x < 0 || b.x > canvas.width) bullets.splice(bIdx, 1);
-                });
-
-                // Update & Draw Powerups
-                powerups.forEach((pw, pwIdx) => {
-                    pw.update();
-                    pw.draw();
-
-                    // Collision with player
-                    players.forEach(p => {
-                        if (p.active && Math.hypot(pw.x - p.x, pw.y - p.y) < pw.size + p.size) {
-                            soundPowerup();
-                            if (pw.type === 'hp') {
-                                p.hp = Math.min(p.maxHp, p.hp + 30);
-                                updateHpBars();
-                            } else if (pw.type === 'triple') {
-                                p.tripleShotTimer = 300; // ~5 sec
-                            } else if (pw.type === 'shield') {
-                                p.shieldTimer = 300;
-                            }
-                            powerups.splice(pwIdx, 1);
-                        }
-                    });
-
-                    if (pw.y > canvas.height + 20) powerups.splice(pwIdx, 1);
-                });
-
-                // Update & Draw Enemies
-                enemies.forEach((e, eIdx) => {
-                    e.update();
-                    e.draw();
-
-                    // Bullet vs Enemy Collision
-                    bullets.forEach((b, bIdx) => {
-                        if (Math.hypot(b.x - e.x, b.y - e.y) < e.size + b.radius) {
-                            e.hp--;
-                            bullets.splice(bIdx, 1);
-                            soundHit();
-                            createExplosion(b.x, b.y, e.color, 5);
-
-                            if (e.hp <= 0) {
-                                soundExplode();
-                                createExplosion(e.x, e.y, e.color, 18);
-                                score += e.type === 'tank' ? 30 : (e.type === 'fast' ? 15 : 10);
-                                document.getElementById('hud-score').innerText = score;
-
-                                // Drop Powerup Chance
-                                if (Math.random() < 0.2) {
-                                    powerups.push(new PowerUp(e.x, e.y));
-                                }
-
-                                enemies.splice(eIdx, 1);
-                            }
-                        }
-                    });
-
-                    // Enemy vs Player Collision / Bottom Screen
-                    players.forEach(p => {
-                        if (p.active && Math.hypot(e.x - p.x, e.y - p.y) < e.size + p.size) {
-                            p.takeDamage(25);
-                            createExplosion(e.x, e.y, e.color, 15);
-                            enemies.splice(eIdx, 1);
-                        }
-                    });
-
-                    if (e.y > canvas.height + e.size) {
-                        // Musuh lolos ke bawah memotong HP semua pemain
-                        players.forEach(p => { if (p.active) p.takeDamage(15); });
-                        enemies.splice(eIdx, 1);
-                    }
-                });
-
-                // Check Game Over Condition
-                const activePlayers = players.filter(p => p.active);
-                if (activePlayers.length === 0 && gameState === 'PLAYING') {
-                    gameOver();
-                }
-            }
-
-            requestAnimationFrame(animate);
-        }
-
-        // Start Loop
-        animate();
     </script>
 </body>
 </html>
